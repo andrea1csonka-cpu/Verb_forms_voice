@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendhagyó Igék Tanulókártyák</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ======================================= */
+        /* ÁLTALÁNOS STÍLUS & TIPOGRÁFIA           */
+        /* ======================================= */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #eef2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        h2 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 5px;
+        }
+
+        /* ======================================= */
+        /* BEÁLLÍTÁSOK RÉSZ                        */
+        /* ======================================= */
+        #settings {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background-color: #f8fafd;
+        }
+        
+        #practice-modes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        #practice-modes label {
+            font-weight: 600;
+            color: #444;
+            display: flex;
+            align-items: center;
+        }
+        
+        #verb-selection-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: white;
+        }
+        
+        #verb-selection-container label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        /* ======================================= */
+        /* KÁRTYA RÉSZ                             */
+        /* ======================================= */
+        #flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .flashcard {
+            width: 350px;
+            height: 220px;
+            perspective: 1000px;
+            margin-bottom: 25px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+        }
+
+        .flashcard.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffdd77, #ffc107);
+            color: #444;
+            font-size: 2.5em; /* Nagyobb magyar szó */
+            font-weight: 700;
+        }
+        
+        .card-front span {
+            /* V1 (alapforma) eltüntetése */
+            display: none; 
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #38c172, #28a745);
+            color: white;
+            transform: rotateY(180deg);
+            font-size: 1.1em;
+        }
+        
+        .card-back .base-form {
+            font-size: 2.8em;
+            margin-bottom: 5px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        
+        .card-back p {
+            font-size: 0.9em;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+        
+        .card-back hr {
+            width: 60%;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            margin: 10px 0;
+        }
+        
+        .v2, .v3 {
+            font-size: 1.3em;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+
+        /* ======================================= */
+        /* GOMBOK ÉS VEZÉRLÉS                      */
+        /* ======================================= */
+        #controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap; /* Gombok törhetnek új sorba */
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #start-button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        
+        #abort-button {
+            background-color: #f44336; /* Piros megszakító gomb */
+            color: white;
+        }
+        
+        #flip-button {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        #next-button {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        #flip-button:hover, #next-button:hover, #abort-button:hover, #start-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .info-message {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #ffe0b2;
+            color: #d84315;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* ======================================= */
+        /* EREDMÉNY OLDAL STÍLUS                   */
+        /* ======================================= */
+        #result-container {
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #f0f0f5;
+            margin-top: 30px;
+        }
+
+        #result-container h2 {
+            color: #007bff;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .result-stats {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .error-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .error-list li {
+            background-color: #fbe0e0;
+            border-left: 5px solid #d32f2f;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .error-list .correct-forms {
+            font-weight: 400;
+            font-size: 0.9em;
+            color: #333;
+        }
+        
+        /* ------------------------------------------- */
+        /* MOTIVÁCIÓS SZAVAK DÍSZÍTÉSÉNEK STÍLUSA */
+        /* ------------------------------------------- */
+        #word-container {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            z-index: 5; 
+            overflow: hidden;
+        }
+
+        .floating-word {
+            position: absolute;
+            bottom: -50px; 
+            font-size: 2.5em; 
+            font-weight: 700;
+            opacity: 0; 
+            white-space: nowrap; 
+            color: rgba(26, 115, 232, 0.2); 
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
+            animation: floatUp 8s linear forwards; 
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg); 
+                opacity: 0; 
+            }
+            10% {
+                opacity: 0.6; 
+            }
+            90% {
+                opacity: 0.1; 
+            }
+            100% {
+                transform: translateY(-100vh) rotate(5deg); 
+                opacity: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="word-container"></div>
+    
+    <div class="container">
+        <h1>Angol Rendhagyó Igék Tanulókártyák 🇬🇧</h1>
+
+        <div id="result-container" style="display: none;">
+            <h2>Gyakorlás Eredménye</h2>
+            <div class="result-stats"></div>
+            <h3>Hibák (Átugrott igék)</h3>
+            <ul class="error-list"></ul>
+            <button onclick="resetPractice()" id="restart-button" style="background-color: #1a73e8; color: white; margin-top: 20px;">Új Gyakorlás Indítása</button>
+        </div>
+
+        <div id="settings">
+            <div>
+                <h2>Igék alakjainak gyakorlása (3.)</h2>
+                <div id="practice-modes">
+                    <label>
+                        <input type="radio" name="mode" value="v2" checked onchange="updatePracticeVerbs()"> Csak **V2**
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="v2v3" onchange="updatePracticeVerbs()"> **V2 és V3**
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <h2>Kijelölendő igék (2.) (<span id="selected-count">0</span> / <span id="total-count">0</span>)</h2>
+                <div style="margin-bottom: 10px;">
+                    <button onclick="toggleAllVerbs(true)" style="background-color: #4CAF50; color: white; margin-right: 5px;">Mindet Kijelöl</button>
+                    <button onclick="toggleAllVerbs(false)" style="background-color: #f44336; color: white;">Mindet Törli</button>
+                </div>
+                <div id="verb-selection-container">
+                    </div>
+            </div>
+        </div>
+        
+        <div class="info-message" id="message">Válassz ki legalább egy igét a gyakorláshoz, majd kattints a "Kártyák Indítása" gombra!</div>
+        
+        <button id="start-button" onclick="startPractice()">Kártyák Indítása</button>
+
+
+        <div id="flashcard-container" style="display: none;">
+            <div class="flashcard" id="current-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span></span> <p>Magyar jelentés</p>
+                    </div>
+                    <div class="card-back">
+                        <span class="base-form"></span>
+                        <p>Magyar jelentés</p>
+                        <hr>
+                        <span class="v2"></span>
+                        <span class="v3"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="controls">
+                <button id="flip-button" onclick="flipCard()">Mutat</button>
+                <button id="next-error-button" onclick="markAsErrorAndNext()" style="background-color: #ff9800; color: white;">❌ Hiba / Átugrás</button>
+                <button id="next-button" onclick="markAsCorrectAndNext()">✅ Tudtam / Következő</button>
+                <button id="abort-button" onclick="endPractice(false)">Megszakítás</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // ----------------------------------------------------
+    // ELŐRE DEFINIÁLT IGELISTA
+    // ----------------------------------------------------
+    const ALL_VERBS = [
+        ["be", "was/were", "been", "lenni"], ["beat", "beat", "beaten", "megverni"],
+        ["become", "became", "become", "válni vmivé"], ["begin", "began", "begun", "kezdeni"],
+        ["break", "broke", "broken", "törni"], ["bring", "brought", "brought", "hozni"],
+        ["build", "built", "built", "építeni"], ["buy", "bought", "bought", "venni"],
+        ["catch", "caught", "caught", "elkapni"], ["choose", "chose", "chosen", "választani"],
+        ["come", "came", "come", "jönni"], ["cost", "cost", "cost", "kerülni (árban)"],
+        ["cut", "cut", "cut", "vágni"], ["do", "did", "done", "csinálni"],
+        ["draw", "drew", "drawn", "rajzolni"], ["drink", "drank", "drunk", "inni"],
+        ["drive", "drove", "driven", "vezetni"], ["eat", "ate", "eaten", "enni"],
+        ["fall", "fell", "fallen", "esni"], ["feel", "felt", "felt", "érezni"],
+        ["find", "found", "found", "találni"], ["fly", "flew", "flown", "repülni"],
+        ["forget", "forgot", "forgotten", "felejteni"], ["get", "got", "got", "kapni"],
+        ["give", "gave", "given", "adni"], ["go", "went", "gone", "menni"],
+        ["have", "had", "had", "birtokolni"], ["hear", "heard", "heard", "hallani"],
+        ["know", "knew", "known", "tudni, ismerni"], ["leave", "left", "left", "elhagyni, elmenni"],
+        ["make", "made", "made", "csinálni, készíteni"], ["meet", "met", "met", "találkozni"],
+        ["pay", "paid", "paid", "fizetni"], ["put", "put", "put", "tenni, rakni"],
+        ["read", "read", "read", "olvasni"], ["run", "ran", "run", "futni"],
+        ["say", "said", "said", "mondani"], ["see", "saw", "seen", "látni"],
+        ["sell", "sold", "sold", "eladni"], ["send", "sent", "sent", "küldeni"],
+        ["sing", "sang", "sung", "énekelni"], ["sit", "sat", "sat", "ülni"],
+        ["sleep", "slept", "slept", "aludni"], ["speak", "spoke", "spoken", "beszélni"],
+        ["stand", "stood", "stood", "állni"], ["swim", "swam", "swum", "úszni"],
+        ["take", "took", "taken", "vinni, fogni"], ["teach", "taught", "taught", "tanítani"],
+        ["tell", "told", "told", "elmondani"], ["think", "thought", "thought", "gondolni"],
+        ["understand", "understood", "understood", "érteni"], ["wake", "woke", "woken", "felébredni"],
+        ["wear", "wore", "worn", "viselni"], ["win", "won", "won", "nyerni"],
+        ["write", "wrote", "written", "írni"]
+    ];
+    
+    // Globális állapotok
+    let practiceVerbs = []; 
+    let currentVerbIndex = 0;
+    let totalVerbs = 0;
+    let errors = []; // Ide gyűjtjük a hibás igéket
+    let corrects = 0;
+    
+    // ----------------------------------------------------
+    // SZÖVEG FELOLVASÁS (TEXT-TO-SPEECH) FUNKCIÓK
+    // ----------------------------------------------------
+    const synth = window.speechSynthesis;
+    let englishVoice = null;
+
+    /**
+     * Megpróbálja beállítani a legmegfelelőbb angol hangot.
+     */
+    function setEnglishVoice() {
+        if (synth.getVoices().length > 0) {
+            // Megpróbálunk egy jó minőségű angol hangot keresni
+            englishVoice = synth.getVoices().find(voice => voice.lang.startsWith('en-') && (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('Zira') || voice.name.includes('Ava'))) || 
+                           // Ha nem találunk "márkásat", válasszunk egy akármilyen angolt
+                           synth.getVoices().find(voice => voice.lang.startsWith('en-')) || 
+                           null;
+        }
+    }
+    
+    // Először megpróbáljuk beállítani a hangot
+    setEnglishVoice();
+
+    // Ha még nem töltődtek be, figyeljük az eseményt.
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = setEnglishVoice;
+    }
+
+    /**
+     * Kimondja a rendhagyó ige alakjait (V1, V2, V3).
+     * @param {string} v1 - Az ige alapformája.
+     * @param {string} v2 - Az ige V2 alakja.
+     * @param {string} v3 - Az ige V3 alakja.
+     * @param {string} mode - A gyakorlási mód ('v2' vagy 'v2v3').
+     */
+    function speakEnglishForms(v1, v2, v3, mode) {
+        if (!synth) return; // Böngésző nem támogatja
+        
+        // Először állítsa le az esetleges korábbi beszédet
+        synth.cancel();
+
+        let textToSpeak = `${v1}. ${v2}`;
+        if (mode === 'v2v3') {
+            textToSpeak += `. ${v3}`;
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        
+        // Angol nyelv beállítása
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // Kicsit lassabban mondja
+        
+        // Beállítja a kiválasztott angol hangot, ha rendelkezésre áll
+        if (englishVoice) {
+            utterance.voice = englishVoice;
+        }
+
+        synth.speak(utterance);
+    }
+
+
+    // ----------------------------------------------------
+    // INDÍTÁS, MEGSZAKÍTÁS ÉS VÉGEREDMÉNY
+    // ----------------------------------------------------
+
+    function startPractice() {
+        const checkboxes = document.querySelectorAll('#verb-selection-container input[type="checkbox"]');
+        
+        const selectedIndices = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => parseInt(cb.dataset.index));
+            
+        if (selectedIndices.length === 0) {
+            document.getElementById('message').textContent = '⚠️ Kérem, jelöljön ki legalább egy igét a listából a kezdéshez.';
+            document.getElementById('message').style.backgroundColor = '#ffe0b2';
+            document.getElementById('message').style.color = '#d84315';
+            return;
+        }
+
+        practiceVerbs = selectedIndices.map(index => ALL_VERBS[index]);
+        shuffleArray(practiceVerbs);
+        
+        currentVerbIndex = 0;
+        totalVerbs = practiceVerbs.length;
+        errors = [];
+        corrects = 0;
+
+        // Váltás a kártya oldalra
+        document.getElementById('settings').style.display = 'none';
+        document.getElementById('start-button').style.display = 'none';
+        document.getElementById('message').style.display = 'none';
+        document.getElementById('result-container').style.display = 'none';
+        document.getElementById('flashcard-container').style.display = 'flex';
+        
+        loadCard();
+    }
+    
+    /**
+     * Megszakítja a gyakorlást és megjeleníti az eredményeket.
+     * @param {boolean} finished - Igaz, ha az összes kártyát végigvittük.
+     */
+    function endPractice(finished) {
+        // Leállítjuk a beszédet is
+        synth.cancel();
+        
+        // Hozzáadjuk a maradék igéket a hibák listájához megszakításkor
+        if (!finished) {
+            const remainingVerbs = practiceVerbs.slice(currentVerbIndex);
+            remainingVerbs.forEach(verb => errors.push(verb));
+        }
+
+        // Váltás az eredmény oldalra
+        document.getElementById('settings').style.display = 'none';
+        document.getElementById('start-button').style.display = 'none';
+        document.getElementById('message').style.display = 'none';
+        document.getElementById('flashcard-container').style.display = 'none';
+        document.getElementById('result-container').style.display = 'block';
+
+        displayResults(finished);
+    }
+    
+    function resetPractice() {
+        document.getElementById('result-container').style.display = 'none';
+        document.getElementById('settings').style.display = 'grid';
+        document.getElementById('start-button').style.display = 'block';
+    }
+
+    function displayResults(finished) {
+        const totalChecked = errors.length + corrects; // Ide tartozik a befejezetlen rész is megszakításnál
+        const totalAvailable = practiceVerbs.length;
+        
+        const stats = document.querySelector('.result-stats');
+        const errorList = document.querySelector('.error-list');
+        errorList.innerHTML = '';
+
+        stats.innerHTML = `
+            ${finished ? '🎉 **Gratulálunk!** Végigvitted a gyakorlást.' : '✋ **Gyakorlás Megszakítva.**'} 
+            <br>Összes kártya: <strong>${totalAvailable}</strong> | 
+            Tudott (✅): <strong>${corrects}</strong> | 
+            Hibás/Átugrott (❌): <strong>${errors.length}</strong>
+        `;
+
+        if (errors.length > 0) {
+            errors.forEach(verb => {
+                const [v1, v2, v3, hungarian] = verb;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>**${v1.toUpperCase()}** (${hungarian})</span>
+                    <span class="correct-forms">${v1} - ${v2} ${document.querySelector('input[name="mode"]:checked').value === 'v2v3' ? '- ' + v3 : ''}</span>
+                `;
+                errorList.appendChild(li);
+            });
+        } else {
+             errorList.innerHTML = '<li>Nincsenek hibás/átugrott igék!</li>';
+        }
+    }
+
+
+    // ----------------------------------------------------
+    // KÁRTYA FUNKCIÓK
+    // ----------------------------------------------------
+    
+    function loadCard() {
+        if (currentVerbIndex >= totalVerbs) {
+            // Teljes gyakorlás vége
+            endPractice(true);
+            return;
+        }
+        
+        // Leállítjuk az előző beszédet, ha van
+        synth.cancel();
+
+        const verb = practiceVerbs[currentVerbIndex];
+        const [v1, v2, v3, hungarian] = verb;
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        
+        document.getElementById('current-card').classList.remove('flipped');
+        
+        // ELŐLAP: Csak a magyar szó
+        document.querySelector('.card-front p:last-child').textContent = hungarian;
+        
+        // HÁTLAP
+        document.querySelector('.card-back .base-form').textContent = v1.toUpperCase();
+        document.querySelector('.card-back p:nth-child(2)').textContent = hungarian;
+        
+        // V2 és V3 jelölések
+        document.querySelector('.card-back .v2').innerHTML = `V2: <strong>${v2}</strong>`;
+        
+        const backV3 = document.querySelector('.card-back .v3');
+        if (mode === 'v2v3') {
+            backV3.innerHTML = `V3: <strong>${v3}</strong>`;
+            backV3.style.display = 'block';
+        } else {
+            backV3.style.display = 'none';
+        }
+        
+        // GOMB FRISSÍTÉSE
+        const remaining = totalVerbs - currentVerbIndex;
+        document.getElementById('next-button').textContent = `✅ Tudtam / Következő (${currentVerbIndex + 1} / ${totalVerbs})`;
+    }
+    
+    function flipCard() {
+        const card = document.getElementById('current-card');
+        card.classList.toggle('flipped');
+        
+        // Ha a kártya felfordult (felfordítás után a 'flipped' osztály aktív)
+        if (card.classList.contains('flipped')) {
+            const verb = practiceVerbs[currentVerbIndex];
+            const [v1, v2, v3, hungarian] = verb;
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            
+            // Hangos felolvasás
+            speakEnglishForms(v1, v2, v3, mode);
+        } else {
+            // Ha visszafordult, állítsa le a beszédet (ha éppen beszél)
+            synth.cancel();
+        }
+    }
+    
+    function markAsCorrectAndNext() {
+        // Leállítjuk a beszédet
+        synth.cancel();
+        
+        corrects++;
+        currentVerbIndex++;
+        loadCard();
+    }
+    
+    function markAsErrorAndNext() {
+        // Leállítjuk a beszédet
+        synth.cancel();
+        
+        // Hozzáadjuk az igét a hibák listájához
+        errors.push(practiceVerbs[currentVerbIndex]);
+        currentVerbIndex++;
+        loadCard();
+    }
+    
+    //------------------------------------------
+    // Segéd funkciók (Igeválasztás)
+    //------------------------------------------
+    
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+    
+    function updatePracticeVerbs() {
+        // Ez a funkció most csak a loadCard-ban lesz értelmezve a rádiógomb változásakor
+    }
+    
+    function setupVerbSelection() {
+        const container = document.getElementById('verb-selection-container');
+        container.innerHTML = '';
+        document.getElementById('total-count').textContent = ALL_VERBS.length;
+
+        ALL_VERBS.forEach((verb, index) => {
+            const [v1, v2, v3, hungarian] = verb;
+            const label = document.createElement('label');
+            label.innerHTML = `
+                <input type="checkbox" checked value="${v1}" data-index="${index}" onchange="updateSelectedCount()"> 
+                <strong>${v1}</strong> (${hungarian})
+            `;
+            container.appendChild(label);
+        });
+        updateSelectedCount();
+    }
+    
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('#verb-selection-container input[type="checkbox"]');
+        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        document.getElementById('selected-count').textContent = selectedCount;
+    }
+    
+    function toggleAllVerbs(check) {
+        const checkboxes = document.querySelectorAll('#verb-selection-container input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = check;
+        });
+        updateSelectedCount();
+    }
+    
+    // ----------------------------------------------------
+    // MOTIVÁCIÓS SZAVAK
+    // ----------------------------------------------------
+    const POSITIVE_WORDS = [
+        "FOCUS", "SMART", "KIND", "AWESOME", "GROW", 
+        "TRUST", "GRIT", "BRAVE", "JOY", "WORTHY",
+        "UNIQUE", "STRONG", "CAPABLE", "LEADER", "BELIEVE"
+    ];
+
+    function createFloatingWord() {
+        const container = document.getElementById('word-container');
+        const word = POSITIVE_WORDS[Math.floor(Math.random() * POSITIVE_WORDS.length)];
+
+        const wordElement = document.createElement('span');
+        wordElement.classList.add('floating-word');
+        wordElement.textContent = word;
+
+        const randomX = Math.random() * 80; 
+        wordElement.style.left = `${randomX}vw`; 
+
+        const randomScale = 1.5 + Math.random() * 0.8; 
+        wordElement.style.transform = `scale(${randomScale})`;
+        
+        const randomDuration = 7 + Math.random() * 5;
+        wordElement.style.animationDuration = `${randomDuration}s`;
+
+        container.appendChild(wordElement);
+
+        wordElement.addEventListener('animationend', () => {
+            wordElement.remove();
+        });
+    }
+
+
+    // ----------------------------------------------------
+    // INDÍTÁS
+    // ----------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+        setupVerbSelection();
+        // Elindítja a motivációs szavak animációját
+        setInterval(createFloatingWord, 2500); 
+    });
+
+</script>
+
+</body>
+</html>
